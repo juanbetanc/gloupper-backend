@@ -31,7 +31,7 @@ api.get("/business", md_auth.ensureAuth, MicroBusinessController.getMicroBusines
 
 /**
  * @swagger
- * /api/business/{id}:
+ * /api/business/:
  *      get:
  *          summary: Endpoint para obtener un negocio
  *          responses:
