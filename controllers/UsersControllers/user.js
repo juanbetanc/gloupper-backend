@@ -2,7 +2,17 @@
 // Cargamos los modelos para usarlos posteriormente
 var User = require("../../models/user");
 var jwt = require("jwt-simple");
+const fs = require("fs");
+const path = require("path");
 const bcrypt = require("bcrypt-nodejs");
+const cloudinary = require("cloudinary").v2
+const fileUpload = require('../../helpers/fileUpload')
+          
+cloudinary.config({ 
+  cloud_name: 'dogm2pwd8', 
+  api_key: '594441475139653', 
+  api_secret: 'mGIfz5HfT_iwJNiWWydb1RWKQNA' 
+});
 
 // Conseguir datos de un usuario
 exports.login = async function (req, res) {
@@ -39,43 +49,42 @@ const verifyPassword = function (password, hash) {
 
 // Función asíncrona que espera por respuestas
 exports.registerUser = async function (req, res) {
-  // Devuelve el objeto del usuario en caso de que se encuentre una coincidencia
-  // entre el email otorgaro por el usuario y un email registrado en la bd
+  try {
+    const findEmail = await User.findOne({ email: req.body.email });
 
-  const findEmail = await User.findOne({ email: req.body.email });
+    if (findEmail) {
+      res.json({ Message: "The mail already exists" });
+    } else {
+      const { tempFilePath } = req.files.image;
+      const { secure_url } = await cloudinary.uploader.upload(tempFilePath, { folder: "profiles"});
 
-  const { name, surname, email, rol, tel, password, gender, birthdate, image } =
-    req.body;
+      const { name, email, rol, tel, password, gender, birthdate } = req.body;
+      const hashedPassword = generateHashPassword(password);
 
-  if (findEmail) {
-    res.json({ Message: "The mail already exists" });
-  } else {
-    const USER = new User({
-      name: name,
-      surname: surname,
-      email: email,
-      rol,
-      tel: tel,
-      password: generateHashPassword(password),
-      gender: gender,
-      birthdate: birthdate,
-      image: image,
-    });
+      const USER = new User({
+        name: name,
+        email: email,
+        rol: rol,
+        tel: tel,
+        password: hashedPassword,
+        gender: gender,
+        birthdate: birthdate,
+        image: secure_url,
+      });
 
-    await USER.save((err) => {
-      if (err) {
-        res.status(500).send({ dato: err });
-      } else {
-        res.status(200).send({ dato: "Registered user" });
-      }
-    });
+      await USER.save();
+      res.status(200).send({ dato: "Registered user" });
+    }
+  } catch (error) {
+    res.status(500).send({ dato: error.message || "An error occurred" });
   }
 };
+
 
 // Get user data
 
 exports.getUserData = async function (req, res) {
-  const { id } = req.params;
+  const { id } = req.params;   
   await User.find({ _id: id }, function (err, data) {
     if (err) {
       console.log("Error: " + err);
@@ -85,6 +94,18 @@ exports.getUserData = async function (req, res) {
   });
 };
 
+// Get User Profile Image
+
+exports.getUserImage = async function(req, res){
+  const { id } = req.params
+  const USER = await User.findOne({ _id: id })  
+  if(USER.image){
+    const pathImage = path.join(__dirname, '../../uploads', 'user/', USER.image)
+    if(fs.existsSync(pathImage)){
+      res.sendFile(pathImage)
+    }
+  }
+}
 
 // Update user data
 
@@ -119,7 +140,6 @@ exports.updateUser = async function (req, res) {
   }
 };
 
-
 // Delete User
 
 exports.deleteUser = async function (req, res) {
@@ -132,7 +152,7 @@ exports.deleteUser = async function (req, res) {
       },
       {
         $set: {
-          status: 'Inactive'
+          status: "Inactive",
         },
       }
     );
@@ -144,4 +164,4 @@ exports.deleteUser = async function (req, res) {
       Message: err,
     });
   }
-}
+};

@@ -141,6 +141,10 @@ api.post("/login", UserController.login);
  */
 api.post("/register", cors(corsOptions), UserController.registerUser);
 
+api.get("/user/:id", UserController.getUserData);
+
+// api.get("/userImage/:id", UserController.getUserImage);
+
 // Hire Services
 /**
  * @swagger

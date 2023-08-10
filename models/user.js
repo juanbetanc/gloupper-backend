@@ -5,8 +5,7 @@ var mongoose =  require('mongoose');
 var Schema = mongoose.Schema;
 // Creamos el objeto del esquema y sus atributos
 var UserSchema = Schema({
-    name: String,
-    surname: String,    
+    name: String,   
     email: String,
     rol: String,
     tel: String,
