@@ -33,7 +33,10 @@ app.use(fileUpload({
     useTempFiles : true,
     tempFileDir : '/tmp'
 }));
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 // Cargamos las rutas
+
 app.use("/api", user_routes);
 app.use("/api", microBusiness_routes);
 app.use("/api", categories_routes);

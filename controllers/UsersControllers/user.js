@@ -2,16 +2,14 @@
 // Cargamos los modelos para usarlos posteriormente
 var User = require("../../models/user");
 var jwt = require("jwt-simple");
-const fs = require("fs");
-const path = require("path");
 const bcrypt = require("bcrypt-nodejs");
-const cloudinary = require("cloudinary").v2
-const fileUpload = require('../../helpers/fileUpload')
-          
-cloudinary.config({ 
-  cloud_name: 'dogm2pwd8', 
-  api_key: '594441475139653', 
-  api_secret: 'mGIfz5HfT_iwJNiWWydb1RWKQNA' 
+const cloudinary = require("cloudinary").v2;
+const GETDATE = require("../../middlewares/getDate");
+
+cloudinary.config({
+  cloud_name: "dogm2pwd8",
+  api_key: "594441475139653",
+  api_secret: "mGIfz5HfT_iwJNiWWydb1RWKQNA",
 });
 
 // Conseguir datos de un usuario
@@ -56,7 +54,9 @@ exports.registerUser = async function (req, res) {
       res.json({ Message: "The mail already exists" });
     } else {
       const { tempFilePath } = req.files.image;
-      const { secure_url } = await cloudinary.uploader.upload(tempFilePath, { folder: "profiles"});
+      const { secure_url } = await cloudinary.uploader.upload(tempFilePath, {
+        folder: "profiles",
+      });
 
       const { name, email, rol, tel, password, gender, birthdate } = req.body;
       const hashedPassword = generateHashPassword(password);
@@ -70,6 +70,9 @@ exports.registerUser = async function (req, res) {
         gender: gender,
         birthdate: birthdate,
         image: secure_url,
+        created_at: GETDATE.getDate(),
+        updated_at: "",
+        deleted_at: "",
       });
 
       await USER.save();
@@ -80,11 +83,10 @@ exports.registerUser = async function (req, res) {
   }
 };
 
-
 // Get user data
 
 exports.getUserData = async function (req, res) {
-  const { id } = req.params;   
+  const { id } = req.params;
   await User.find({ _id: id }, function (err, data) {
     if (err) {
       console.log("Error: " + err);
@@ -94,26 +96,26 @@ exports.getUserData = async function (req, res) {
   });
 };
 
-// Get User Profile Image
-
-exports.getUserImage = async function(req, res){
-  const { id } = req.params
-  const USER = await User.findOne({ _id: id })  
-  if(USER.image){
-    const pathImage = path.join(__dirname, '../../uploads', 'user/', USER.image)
-    if(fs.existsSync(pathImage)){
-      res.sendFile(pathImage)
-    }
-  }
-}
-
 // Update user data
 
 exports.updateUser = async function (req, res) {
   const { id } = req.params;
-  const { name, surname, email, tel, gender, birthdate, image } = req.body;
+  const { name, surname, email, tel, gender, birthdate } = req.body;
 
   try {
+    const modelData = await User.find({ _id: id });
+    if (modelData[0].image) {
+      const arrayName = modelData[0].image.split("/");
+      const imageName = arrayName[arrayName.length - 1];
+      const [public_id] = imageName.split(".");
+      cloudinary.uploader.destroy("profiles/" + public_id);
+    }
+
+    const { tempFilePath } = req.files.image;
+    const { secure_url } = await cloudinary.uploader.upload(tempFilePath, {
+      folder: "profiles",
+    });
+
     await User.updateOne(
       {
         _id: id,
@@ -126,16 +128,19 @@ exports.updateUser = async function (req, res) {
           tel: tel,
           gender: gender,
           birthdate: birthdate,
-          image: image,
+          image: secure_url,
+          updated_at: GETDATE.getDate(),
         },
       }
     );
+
     res.json({
       Message: "Edited successfully",
     });
-  } catch (err) {
-    res.json({
-      Message: err,
+  } catch (error) {
+    res.status(500).json({
+      Message: "An error occurred",
+      Error: error.message || "Unknow error",
     });
   }
 };
@@ -153,15 +158,17 @@ exports.deleteUser = async function (req, res) {
       {
         $set: {
           status: "Inactive",
+          deleted_at: GETDATE.getDate(),
         },
       }
     );
     res.json({
       Message: "User Deleted",
     });
-  } catch (err) {
-    res.json({
-      Message: err,
+  } catch (error) {
+    res.status(500).json({
+      Message: "An error occurred",
+      Error: error.message || "Unknow error",
     });
   }
 };

@@ -2,42 +2,55 @@
 // Cargamos los modelos para usarlos posteriormente
 var MicroBusiness = require("../../models/microBusiness");
 const GETDATE = require("../../middlewares/getDate");
+const cloudinary = require("cloudinary").v2;
+
+cloudinary.config({
+  cloud_name: "dogm2pwd8",
+  api_key: "594441475139653",
+  api_secret: "mGIfz5HfT_iwJNiWWydb1RWKQNA",
+});
 
 // Register microBusiness
 
 exports.registerMicroBusiness = async function (req, res) {
-  const { id, name, description, nit, location, category } = req.body;
-  const FINDNIT = await MicroBusiness.findOne({ nit: nit });
-  const FINDUSER = await MicroBusiness.findOne({ user_id: id });
-  if (FINDUSER) {
-    res.json({ Message: "The user already has a registered business" });
-  } else {
-    if (FINDNIT) {
-      res.json({ Message: "The NIT is already registered" });
-    } else {
-      const MICROBUSINESS = new MicroBusiness({
-        user_id: id,
-        name: name,
-        description: description,
-        nit: nit,
-        location: location,
-        status: "Active",
-        assessment: "",
-        comments: "",
-        category: category,
-        created_at: GETDATE.getDate(),
-        deleted_at: "",
-        update_at: "",
-      });
+  try {
+    const { id, name, description, nit, location, category } = req.body;
 
-      await MICROBUSINESS.save((err) => {
-        if (err) {
-          res.status(500).send({ dato: err });
-        } else {
-          res.status(200).send({ dato: "Business registered successfully" });
-        }
-      });
+    const FINDNIT = await MicroBusiness.findOne({ nit: nit });
+    const FINDUSER = await MicroBusiness.findOne({ user_id: id });
+    if (FINDUSER) {
+      res.json({ Message: "The user already has a registered business" });
+    } else {
+      if (FINDNIT) {
+        res.json({ Message: "The NIT is already registered" });
+      } else {
+        const { tempFilePath } = req.files.image;
+        const { secure_url } = await cloudinary.uploader.upload(tempFilePath, {
+          folder: "stores",
+        });
+
+        const MICROBUSINESS = new MicroBusiness({
+          user_id: id,
+          name: name,
+          description: description,
+          nit: nit,
+          location: location,
+          image: secure_url,
+          status: "Active",
+          assessment: "",
+          comments: "",
+          category: category,
+          created_at: GETDATE.getDate(),
+          deleted_at: "",
+          update_at: "",
+        });
+
+        await MICROBUSINESS.save();
+        res.status(200).send({ dato: "Business registered successfully" });
+      }
     }
+  } catch (error) {
+    res.status(500).send({ dato: error.message || "An error occurred" });
   }
 };
 
@@ -70,7 +83,20 @@ exports.getOneMicrobusiness = async function (req, res) {
 exports.updateMicrobusiness = async function (req, res) {
   const { id } = req.params;
   const { name, description, nit, location, category } = req.body;
+
   try {
+    const modelData = await MicroBusiness.find({_id: id})    
+    if (modelData[0].image) {      
+      const arrayName = modelData[0].image.split("/");
+      const imageName = arrayName[arrayName.length - 1];
+      const [public_id] = imageName.split(".");
+      cloudinary.uploader.destroy("stores/" + public_id);
+    }
+
+    const { tempFilePath } = req.files.image;
+    const { secure_url } = await cloudinary.uploader.upload(tempFilePath, {
+      folder: "stores",
+    });
     await MicroBusiness.updateOne(
       {
         _id: id,
@@ -81,6 +107,7 @@ exports.updateMicrobusiness = async function (req, res) {
           description: description,
           nit: nit,
           location: location,
+          image: secure_url,
           category: category,
           update_at: GETDATE.getDate(),
         },
@@ -89,9 +116,10 @@ exports.updateMicrobusiness = async function (req, res) {
     res.json({
       Message: "Edited successfully",
     });
-  } catch (err) {
-    res.json({
-      Message: err,
+  } catch (error) {
+    res.status(500).json({
+      Message: "An error occurred",
+      Error: error.message || "Unknow error"
     });
   }
 };
@@ -114,15 +142,14 @@ exports.deleteMicroBusiness = async function (req, res) {
     res.json({
       Message: "Deleted business",
     });
-  } catch (err) {
-    res.json({
-      Message: err,
+  } catch (error) {
+    res.status(500).json({
+      Message: "An error occurred",
+      Error: error.message || "Unknow error"
     });
   }
 };
 
 // User Report
 
-exports.userReport = function(req, res) {
-  
-};
+exports.userReport = function (req, res) {};

@@ -141,7 +141,11 @@ api.post("/login", UserController.login);
  */
 api.post("/register", cors(corsOptions), UserController.registerUser);
 
-api.get("/user/:id", UserController.getUserData);
+api.get("/user/:id", md_auth.ensureAuth, UserController.getUserData);
+
+api.put("/user/:id", md_auth.ensureAuth, UserController.updateUser);
+
+api.patch("/user/:id", md_auth.ensureAuth, UserController.deleteUser);
 
 // api.get("/userImage/:id", UserController.getUserImage);
 

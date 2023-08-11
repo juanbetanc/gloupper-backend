@@ -2,36 +2,41 @@
 
 const SERVICES = require("../../models/services");
 const GETDATE = require("../../middlewares/getDate");
+const cloudinary = require("cloudinary").v2;
 
 // Create a new service
 exports.createService = async function (req, res) {
-  const { business_id, name, description, price, added, image } = req.body;
-  const FINDSERVICE = await SERVICES.findOne({
-    name: name,
-    business_id: business_id,
-  });
-
-  if (FINDSERVICE) {
-    res.json({
-      Message: "This service already exists for the business",
-    });
-  } else {
-    const SERVICE = new SERVICES({
-      business_id: business_id,
+  try {
+    const { business_id, name, description, price, added } = req.body;
+    const FINDSERVICE = await SERVICES.findOne({
       name: name,
-      description: description,
-      price: price,
-      added: [],
-      image: "",
+      business_id: business_id,
     });
 
-    await SERVICE.save((err) => {
-      if (err) {
-        res.status(500).send({ dato: err });
-      } else {
-        res.status(200).send({ dato: "Saved successfully" });
-      }
-    });
+    if (FINDSERVICE) {
+      res.json({
+        Message: "This service already exists for the business",
+      });
+    } else {
+      const { tempFilePath } = req.files.image;
+      const { secure_url } = await cloudinary.uploader.upload(tempFilePath, {
+        folder: "services",
+      });
+
+      const SERVICE = new SERVICES({
+        business_id: business_id,
+        name: name,
+        description: description,
+        price: price,
+        added: [],
+        image: secure_url,
+      });
+
+      await SERVICE.save();
+      res.status(200).send({ dato: "Service registered succesfully " });
+    }
+  } catch (error) {
+    res.status(500).send({ dato: error.message || "An error occurred" });
   }
 };
 
@@ -65,9 +70,22 @@ exports.getOneService = async function (req, res) {
 
 exports.updateService = async function (req, res) {
   const { id } = req.params;
-  const { business_id, name, description, price, added, image } = req.body;
+  const { business_id, name, description, price, added } = req.body;
 
   try {
+    const modelData = await SERVICES.find({ _id: id });
+    if (modelData[0].image) {
+      const arrayName = modelData[0].image.split("/");
+      const imageName = arrayName[arrayName.length - 1];
+      const [public_id] = imageName.split(".");
+      cloudinary.uploader.destroy("services/" + public_id);
+    }
+
+    const { tempFilePath } = req.files.image;
+    const { secure_url } = await cloudinary.uploader.upload(tempFilePath, {
+      folder: "services",
+    });
+
     await SERVICES.updateOne(
       {
         _id: id,
@@ -79,16 +97,17 @@ exports.updateService = async function (req, res) {
           description: description,
           price: price,
           added: added,
-          image: image,
+          image: secure_url,
         },
       }
     );
     res.json({
       Message: "Updated successfully",
     });
-  } catch (err) {
-    res.json({
-      Message: err,
+  } catch (error) {
+    res.status(500).json({
+      Message: "An error occurred",
+      Error: error.message || "Unknow error",
     });
   }
 };
@@ -97,18 +116,27 @@ exports.updateService = async function (req, res) {
 
 exports.deleteService = async function (req, res) {
   const { id } = req.params;
-  const { business_id } = req.body
+  const { business_id } = req.body;
   try {
+    const modelData = await SERVICES.find({ _id: id });
+    if (modelData[0].image) {
+      const arrayName = modelData[0].image.split("/");
+      const imageName = arrayName[arrayName.length - 1];
+      const [public_id] = imageName.split(".");
+      cloudinary.uploader.destroy("services/" + public_id);
+    }
+
     await SERVICES.deleteOne({
       _id: id,
-      business_id: business_id
+      business_id: business_id,
     });
     res.json({
       Message: "Deleted successfully",
     });
-  } catch (err) {
-    res.json({
-      Message: err,
+  } catch (error) {
+    res.status(500).json({
+      Message: "An error occurred",
+      Error: error.message || "Unknow error",
     });
   }
 };

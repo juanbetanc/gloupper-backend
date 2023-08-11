@@ -9,6 +9,7 @@ const ServicesSchema = Schema({
     description: String,
     added: Array,
     price: Number,
+    image: String,
     created_at: String,
     update_at: String,
 });

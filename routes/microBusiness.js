@@ -120,12 +120,12 @@ api.post("/business", md_auth.ensureAuth, MicroBusinessController.registerMicroB
 
 /**
  * @swagger
- * /api/business/{id}:
+ * /api/business/:
  *      put:
- *          summary: Endpoint para actualizar un negocio
+ *          summary: Endpoint para registrar un negocio
  *          responses:
  *              200:
- *                  description: Edited successfully
+ *                  description: Saved successfully
  *          parameters: [
  *                {
  *                  "in": "header",

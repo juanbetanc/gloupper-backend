@@ -49,11 +49,12 @@ exports.hireService = async function (req, res) {
 
 exports.ClientGetHiredServices = async function(req, res){
   const { client_id } = req.body;
+
   await HireService.find({ client_id: client_id}, function (err, data) {
     if (err) {
       console.log(err);
     } else {
-      res.json({ data });
+      res.json(data);
     }
   });
 }

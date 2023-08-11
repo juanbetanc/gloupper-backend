@@ -13,7 +13,10 @@ var UserSchema = Schema({
     password: String,
     gender: String, 
     birthdate: String, 
-    image: String
+    image: String,
+    created_at: String,
+    deleted_at: String,
+    updated_at: String, 
 });
 // Exportamos el modelo para usarlo en otros ficheros
 module.exports = mongoose.model('User', UserSchema);
