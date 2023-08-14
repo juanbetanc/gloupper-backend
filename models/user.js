@@ -14,6 +14,8 @@ var UserSchema = Schema({
     gender: String, 
     birthdate: String, 
     image: String,
+    follow: String,
+    reports: Number,
     created_at: String,
     deleted_at: String,
     updated_at: String, 

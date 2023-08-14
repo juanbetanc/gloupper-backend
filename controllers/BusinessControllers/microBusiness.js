@@ -1,6 +1,7 @@
 "use strict";
 // Cargamos los modelos para usarlos posteriormente
 var MicroBusiness = require("../../models/microBusiness");
+const User = require("../../models/user");
 const GETDATE = require("../../middlewares/getDate");
 const cloudinary = require("cloudinary").v2;
 
@@ -85,8 +86,8 @@ exports.updateMicrobusiness = async function (req, res) {
   const { name, description, nit, location, category } = req.body;
 
   try {
-    const modelData = await MicroBusiness.find({_id: id})    
-    if (modelData[0].image) {      
+    const modelData = await MicroBusiness.find({ _id: id });
+    if (modelData[0].image) {
       const arrayName = modelData[0].image.split("/");
       const imageName = arrayName[arrayName.length - 1];
       const [public_id] = imageName.split(".");
@@ -119,7 +120,7 @@ exports.updateMicrobusiness = async function (req, res) {
   } catch (error) {
     res.status(500).json({
       Message: "An error occurred",
-      Error: error.message || "Unknow error"
+      Error: error.message || "Unknow error",
     });
   }
 };
@@ -145,11 +146,36 @@ exports.deleteMicroBusiness = async function (req, res) {
   } catch (error) {
     res.status(500).json({
       Message: "An error occurred",
-      Error: error.message || "Unknow error"
+      Error: error.message || "Unknow error",
     });
   }
 };
 
 // User Report
 
-exports.userReport = function (req, res) {};
+exports.userReport = async function (req, res) {
+  try {
+    const { user_id } = req.params;
+    const userData = await User.find({ _id: user_id })    
+    const userReports = userData[0].reports 
+
+    await User.updateOne(
+      {
+        _id: user_id,
+      },
+      {
+        $set: {
+          reports: userReports + 1,
+        },
+      }
+    );
+    res.json({
+      Message: "User reported",
+    });
+  } catch (error) {
+    res.status(500).json({
+      Message: "An error occurred",
+      Error: error.message || "Unknow error",
+    });
+  }
+};

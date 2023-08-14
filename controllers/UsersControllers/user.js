@@ -1,7 +1,8 @@
 "use strict";
 // Cargamos los modelos para usarlos posteriormente
-var User = require("../../models/user");
-var jwt = require("jwt-simple");
+const User = require("../../models/user");
+const MicroBusiness = require("../../models/microBusiness");
+const jwt = require("jwt-simple");
 const bcrypt = require("bcrypt-nodejs");
 const cloudinary = require("cloudinary").v2;
 const GETDATE = require("../../middlewares/getDate");
@@ -70,6 +71,7 @@ exports.registerUser = async function (req, res) {
         gender: gender,
         birthdate: birthdate,
         image: secure_url,
+        reports: 0,
         created_at: GETDATE.getDate(),
         updated_at: "",
         deleted_at: "",
@@ -164,6 +166,33 @@ exports.deleteUser = async function (req, res) {
     );
     res.json({
       Message: "User Deleted",
+    });
+  } catch (error) {
+    res.status(500).json({
+      Message: "An error occurred",
+      Error: error.message || "Unknow error",
+    });
+  }
+};
+
+exports.businessReport = async function (req, res) {
+  try {
+    const { business_id } = req.params;
+    const businessData = await User.find({ _id: business_id });    
+    const businessReports = businessData[0].reports;
+
+    await User.updateOne(
+      {
+        _id: user_id,
+      },
+      {
+        $set: {
+          reports: businessReports + 1,
+        },
+      }
+    );
+    res.json({
+      Message: "Business reported",
     });
   } catch (error) {
     res.status(500).json({

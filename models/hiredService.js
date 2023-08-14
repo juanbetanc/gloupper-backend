@@ -7,7 +7,10 @@ const hiredServiceSchema = Schema({
     business_id: String,
     service_id: String,
     client_id: String,
-    status: String,
+    status: {
+        type: String,
+        enum: ['Pending', 'Setbacks', 'Done', 'Refused', 'Accepted']
+    },
     location: String,
     date: String,
     hour: String,

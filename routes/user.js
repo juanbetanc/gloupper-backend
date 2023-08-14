@@ -6,6 +6,7 @@ var express = require("express");
 // Cargamos el controlador
 var UserController = require("../controllers/UsersControllers/user");
 var ServicesController = require("../controllers/UsersControllers/hiredService");
+const validateToken = require("../helpers/validateToken")
 
 var corsOptions = {
   origin: "*",
@@ -39,7 +40,7 @@ var md_auth = require("../middlewares/authenticated");
  *
  *
  */
-api.post("/validate-token", md_auth.ensureAuth)
+api.post("/validate-token", validateToken.validateToken)
 
 /**
  * @swagger
@@ -147,8 +148,6 @@ api.put("/user/:id", md_auth.ensureAuth, UserController.updateUser);
 
 api.patch("/user/:id", md_auth.ensureAuth, UserController.deleteUser);
 
-// api.get("/userImage/:id", UserController.getUserImage);
-
 // Hire Services
 /**
  * @swagger
@@ -231,6 +230,10 @@ api.post("/hire", md_auth.ensureAuth, ServicesController.hireService);
  *          ]
  */
 api.get("/hired", md_auth.ensureAuth, ServicesController.ClientGetHiredServices);
+
+// Business report
+
+api.post("/report-business/:id", md_auth.ensureAuth, UserController.businessReport)
 
 // Exportamos la configuración
 module.exports = api;

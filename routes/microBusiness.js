@@ -291,4 +291,7 @@ api.get("/businessHired", md_auth.ensureAuth, ServicesController.BusinessGetHire
  */
 api.patch("/businessHired/:id", md_auth.ensureAuth, ServicesController.UpdateStatusHiredServices);
 
+// User report
+api.post("/report-user/:id", md_auth.ensureAuth, MicroBusinessController.userReport);
+
 module.exports = api

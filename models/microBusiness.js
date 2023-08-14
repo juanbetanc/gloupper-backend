@@ -14,7 +14,7 @@ const MicroBusinessSchema = Schema({
     assessment: Number,
     comments: String,
     category: String,
-    image: String,
+    image: String,    
     created_at: String,
     deleted_at: String,
     update_at: String,    
