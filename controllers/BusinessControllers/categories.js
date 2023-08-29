@@ -2,6 +2,14 @@
 
 const CATEGORIES = require("../../models/categories");
 const GETDATE = require("../../middlewares/getDate");
+const cloudinary = require("cloudinary").v2;
+
+cloudinary.config({
+  cloud_name: "dogm2pwd8",
+  api_key: "594441475139653",
+  api_secret: "mGIfz5HfT_iwJNiWWydb1RWKQNA",
+});
+
 
 // Create a new category
 exports.createCategory = async function (req, res) {

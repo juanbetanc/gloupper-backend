@@ -6,8 +6,7 @@ var secret = "?xugw#BaH8=V_YJ";
 exports.validateToken = function (req, res) {
   var reqToken = req.body.token
   var  token  = reqToken.replace(/['"]+/g, "");
-
-  console.log(token)
+  var payload = jwt.decode(token, secret);
 
   try {
     var payload = jwt.decode(token, secret);
@@ -18,6 +17,8 @@ exports.validateToken = function (req, res) {
     } else {
       return res.status(200).send({
         message: "Token válido",
+        token,
+        user: payload
       })
     }
   } catch (ex) {

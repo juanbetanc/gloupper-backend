@@ -27,7 +27,7 @@ exports.login = async function (req, res) {
     const payload = { user_id: USER._id, email: USER.email };
     const token = jwt.encode(payload, "?xugw#BaH8=V_YJ");
     // secret key : ? xbox usa golf walmart # BESTBUY apple HULU 8 = VISA _ YELP JACK
-    const response = { token: token, user: { name: USER.name, rol: USER.rol } };
+    const response = { token: token, user: { name: USER.name, rol: USER.rol, userId: USER._id } };
     return res.status(200).send(response);
     // }
   }
@@ -89,11 +89,11 @@ exports.registerUser = async function (req, res) {
 
 exports.getUserData = async function (req, res) {
   const { id } = req.params;
-  await User.find({ _id: id }, function (err, data) {
+  await User.findById({ _id: id }, function (err, data) {
     if (err) {
       console.log("Error: " + err);
     } else {
-      res.json({ data });
+      res.json( data );
     }
   });
 };
