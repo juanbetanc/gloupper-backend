@@ -25,10 +25,10 @@ exports.createService = async function (req, res) {
         Message: "This service already exists for the business",
       });
     } else {
-      const { tempFilePath } = req.files.image;
-      const { secure_url } = await cloudinary.uploader.upload(tempFilePath, {
-        folder: "services",
-      });
+      // const { tempFilePath } = req.files.image;
+      // const { secure_url } = await cloudinary.uploader.upload(tempFilePath, {
+      //   folder: "services",
+      // });
 
       const SERVICE = new SERVICES({
         business_id: business_id,
@@ -36,7 +36,7 @@ exports.createService = async function (req, res) {
         description: description,
         price: price,
         added: [],
-        image: secure_url,
+        // image: secure_url,
       });
 
       await SERVICE.save();

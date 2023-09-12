@@ -52,12 +52,19 @@ exports.registerUser = async function (req, res) {
     const findEmail = await User.findOne({ email: req.body.email });
 
     if (findEmail) {
-      res.json({ Message: "The mail already exists" });
+      res.json({ Message: "The email already exists" });
     } else {
-      const { tempFilePath } = req.files.image;
-      const { secure_url } = await cloudinary.uploader.upload(tempFilePath, {
-        folder: "profiles",
-      });
+      let image = ""; // Inicializamos la variable de imagen en blanco
+
+      if (req.files && req.files.image) {
+        // Verificamos si se proporcionó una imagen en la solicitud
+        const { tempFilePath } = req.files.image;
+        const { secure_url } = await cloudinary.uploader.upload(tempFilePath, {
+          folder: "profiles",
+        });
+
+        image = secure_url; // Asignamos la URL de la imagen a la variable
+      }
 
       const { name, email, rol, tel, password, gender, birthdate } = req.body;
       const hashedPassword = generateHashPassword(password);
@@ -70,7 +77,7 @@ exports.registerUser = async function (req, res) {
         password: hashedPassword,
         gender: gender,
         birthdate: birthdate,
-        image: secure_url,
+        image: image, // Asignamos la URL de la imagen o un valor en blanco
         reports: 0,
         created_at: GETDATE.getDate(),
         updated_at: "",
