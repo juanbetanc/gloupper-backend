@@ -1,35 +1,35 @@
 "use strict";
 // Cargamos los modelos para usarlos posteriormente
+
+require('dotenv').config();
 const User = require("../../models/user");
 const MicroBusiness = require("../../models/microBusiness");
 const jwt = require("jwt-simple");
 const bcrypt = require("bcrypt-nodejs");
 const cloudinary = require("cloudinary").v2;
-const GETDATE = require("../../middlewares/getDate");
+const GETDATE = require("../../helpers/getDate");
 
 cloudinary.config({
-  cloud_name: "dogm2pwd8",
-  api_key: "594441475139653",
-  api_secret: "mGIfz5HfT_iwJNiWWydb1RWKQNA",
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
 // Conseguir datos de un usuario
 exports.login = async function (req, res) {
   var { email, password } = req.body;
   const USER = await User.findOne({ email: email });
-
+  
   if (verifyPassword(password, USER.password)) {
-    // if (err) {
-    //   console.log(err);
-    //   return res.status(500).send({ err: err });
-    // } else {
     //Generate JWT
     const payload = { user_id: USER._id, email: USER.email };
     const token = jwt.encode(payload, "?xugw#BaH8=V_YJ");
     // secret key : ? xbox usa golf walmart # BESTBUY apple HULU 8 = VISA _ YELP JACK
-    const response = { token: token, user: { name: USER.name, rol: USER.rol, userId: USER._id } };
+    const response = {
+      token: token,
+      user: { name: USER.name, rol: USER.rol, userId: USER._id },
+    };
     return res.status(200).send(response);
-    // }
   }
 
   return res.json({ Message: "Incorrect credentials" });
@@ -93,7 +93,7 @@ exports.getUserData = async function (req, res) {
     if (err) {
       console.log("Error: " + err);
     } else {
-      res.json( data );
+      res.json(data);
     }
   });
 };
@@ -175,10 +175,11 @@ exports.deleteUser = async function (req, res) {
   }
 };
 
+// Reportar empresa
 exports.businessReport = async function (req, res) {
   try {
     const { business_id } = req.params;
-    const businessData = await User.find({ _id: business_id });    
+    const businessData = await User.find({ _id: business_id });
     const businessReports = businessData[0].reports;
 
     await User.updateOne(
@@ -194,6 +195,24 @@ exports.businessReport = async function (req, res) {
     res.json({
       Message: "Business reported",
     });
+  } catch (error) {
+    res.status(500).json({
+      Message: "An error occurred",
+      Error: error.message || "Unknow error",
+    });
+  }
+};
+
+// Buscar Empresas
+
+exports.findBusiness = async function (req, res) {
+  try {
+    const { param } = req.params;
+    const data = await MicroBusiness.find({
+      name: { $regex: param, $options: "i" },
+    });
+    res.json(data);
+    
   } catch (error) {
     res.status(500).json({
       Message: "An error occurred",

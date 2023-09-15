@@ -1,14 +1,16 @@
 "use strict";
 // Cargamos los modelos para usarlos posteriormente
+require("dotenv").config();
 var MicroBusiness = require("../../models/microBusiness");
+const SERVICES = require("../../models/services");
 const User = require("../../models/user");
-const GETDATE = require("../../middlewares/getDate");
+const GETDATE = require("../../helpers/getDate");
 const cloudinary = require("cloudinary").v2;
 
 cloudinary.config({
-  cloud_name: "dogm2pwd8",
-  api_key: "594441475139653",
-  api_secret: "mGIfz5HfT_iwJNiWWydb1RWKQNA",
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
 // Register microBusiness
@@ -59,7 +61,7 @@ exports.registerMicroBusiness = async function (req, res) {
 exports.getMicroBusiness = async function (req, res) {
   await MicroBusiness.find({ status: "Active" }, function (err, data) {
     if (err) {
-      console.log("Error: " + err);
+      res.json({ "Error: ": err });
     } else {
       res.json({ data });
     }
@@ -70,15 +72,22 @@ exports.getMicroBusiness = async function (req, res) {
 
 exports.getOneMicrobusiness = async function (req, res) {
   const { id } = req.params;
-  await MicroBusiness.find({ _id: id }, function (err, data) {
-    if (err) {
-      console.log(err);
-    } else {
-      res.json({ data });
-    }
-  });
-};
 
+  try {
+    const microBusiness = await MicroBusiness.findOne({ _id: id }).populate(
+      "services"
+    );
+
+    if (!microBusiness) {
+      return res.status(404).json({ error: "MicroBusiness no encontrado" });
+    }
+
+    res.json(microBusiness);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error al buscar MicroBusiness" });
+  }
+};
 // Update Microbusiness
 
 exports.updateMicrobusiness = async function (req, res) {
@@ -156,8 +165,8 @@ exports.deleteMicroBusiness = async function (req, res) {
 exports.userReport = async function (req, res) {
   try {
     const { user_id } = req.params;
-    const userData = await User.find({ _id: user_id })    
-    const userReports = userData[0].reports 
+    const userData = await User.find({ _id: user_id });
+    const userReports = userData[0].reports;
 
     await User.updateOne(
       {

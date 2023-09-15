@@ -2,7 +2,7 @@
 
 const HIREDSERVICE = require("../../models/hiredService");
 const MICROBUSINESS = require("../../models/microBusiness");
-const GETDATE = require("../../middlewares/getDate");
+const GETDATE = require("../../helpers/getDate");
 
 // Get Hired Services
 

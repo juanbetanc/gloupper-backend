@@ -10,7 +10,7 @@ const MicroBusinessSchema = Schema({
     nit: String,
     location: String,
     status: String,
-    services: Array,
+    services: [{type: Schema.Types.ObjectId, ref: 'Services'}],
     assessment: Number,
     comments: String,
     category: String,

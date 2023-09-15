@@ -1,15 +1,15 @@
 "use strict";
 
+require ("dotenv").config();
 const CATEGORIES = require("../../models/categories");
-const GETDATE = require("../../middlewares/getDate");
+const GETDATE = require("../../helpers/getDate");
 const cloudinary = require("cloudinary").v2;
 
 cloudinary.config({
-  cloud_name: "dogm2pwd8",
-  api_key: "594441475139653",
-  api_secret: "mGIfz5HfT_iwJNiWWydb1RWKQNA",
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
-
 
 // Create a new category
 exports.createCategory = async function (req, res) {

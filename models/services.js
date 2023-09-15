@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const ServicesSchema = Schema({
-    business_id: String,
+    _business: {type: String, ref: 'MicroBusiness'},
     name: String,
     description: String,
     added: Array,

@@ -16,7 +16,7 @@ mongoose.Promise = global.Promise;
 
 
 //mongodb+srv://startupcluster.q2htvc0.mongodb.net/StartupCluster?authSource=startup-api-rest@admin
-mongoose.connect('mongodb+srv://startup-api-rest:otBbkDDiWvxen5MP@startupcluster.q2htvc0.mongodb.net/StartupCluster&authSource=admin', { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect('mongodb+srv://duvan:t8qFmelrP8PapNwF@travel.phtj87x.mongodb.net/business&authSource=admin', { useNewUrlParser: true, useUnifiedTopology: true })
     .then(() => {
         // Cuando se realiza la conexión, lanzamos este mensaje por consola
         console.log("La conexión a la base de datos StartupCluster se ha realizado correctamente")

@@ -1,49 +1,66 @@
 "use strict";
 
+require("dotenv").config();
+const MicroBusiness = require("../../models/microBusiness");
 const SERVICES = require("../../models/services");
-const GETDATE = require("../../middlewares/getDate");
+const GETDATE = require("../../helpers/getDate");
 const cloudinary = require("cloudinary").v2;
 
 cloudinary.config({
-  cloud_name: "dogm2pwd8",
-  api_key: "594441475139653",
-  api_secret: "mGIfz5HfT_iwJNiWWydb1RWKQNA",
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
-
 
 // Create a new service
 exports.createService = async function (req, res) {
   try {
     const { business_id, name, description, price, added } = req.body;
-    const FINDSERVICE = await SERVICES.findOne({
+
+    // Verificar si el servicio ya existe para la MicroBusiness
+    const existingService = await SERVICES.findOne({
+      _business: business_id,
       name: name,
-      business_id: business_id,
     });
 
-    if (FINDSERVICE) {
-      res.json({
-        Message: "This service already exists for the business",
-      });
-    } else {
-      const { tempFilePath } = req.files.image;
-      const { secure_url } = await cloudinary.uploader.upload(tempFilePath, {
-        folder: "services",
-      });
-
-      const SERVICE = new SERVICES({
-        business_id: business_id,
-        name: name,
-        description: description,
-        price: price,
-        added: [],
-        image: secure_url,
-      });
-
-      await SERVICE.save();
-      res.status(200).send({ dato: "Service registered succesfully " });
+    if (existingService) {
+      return res
+        .status(400)
+        .json({ Message: "This service already exists for the business" });
     }
+
+    // Subir la imagen a Cloudinary
+    const { tempFilePath } = req.files.image;
+    const { secure_url } = await cloudinary.uploader.upload(tempFilePath, {
+      folder: "services",
+    });
+
+    // Crear una nueva instancia de Service
+    const newService = new SERVICES({
+      _business: business_id,
+      name: name,
+      description: description,
+      price: price,
+      added: added || [],
+      image: secure_url,
+      created_at: new Date().toISOString(),
+      update_at: null,
+    });
+
+    // Guardar el nuevo servicio en la base de datos
+    await newService.save();
+
+    // Actualizar la lista de servicios en la MicroBusiness
+    await MicroBusiness.findByIdAndUpdate(
+      business_id,
+      { $push: { services: newService._id } },
+      { new: true }
+    );
+
+    res.status(200).json({ dato: "Service registered successfully" });
   } catch (error) {
-    res.status(500).send({ dato: error.message || "An error occurred" });
+    console.error(error);
+    res.status(500).json({ dato: error.message || "An error occurred" });
   }
 };
 
