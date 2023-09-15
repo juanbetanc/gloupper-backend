@@ -19,7 +19,7 @@ mongoose.Promise = global.Promise;
 mongoose.connect('mongodb+srv://duvan:t8qFmelrP8PapNwF@travel.phtj87x.mongodb.net/business&authSource=admin', { useNewUrlParser: true, useUnifiedTopology: true })
     .then(() => {
         // Cuando se realiza la conexión, lanzamos este mensaje por consola
-        console.log("La conexión a la base de datos StartupCluster se ha realizado correctamente")
+        console.log("La conexión a la base de datos gloupper se ha realizado correctamente")
 
         // CREAR EL SERVIDOR WEB CON NODEJS
         app.listen(port, () => {
