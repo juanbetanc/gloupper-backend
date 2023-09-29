@@ -1,7 +1,8 @@
 "user strict";
+require("dotenv").config();
 var jwt = require("jwt-simple");
 var moment = require("moment");
-var secret = "?xugw#BaH8=V_YJ";
+var secret = process.env.SECRET;
 
 exports.validateToken = function (req, res) {
   var reqToken = req.body.token

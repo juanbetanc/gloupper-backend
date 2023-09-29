@@ -31,8 +31,8 @@ exports.createCategory = async function (req, res) {
         secondaryColor: secondaryColor,
         image: secure_url,
         created_at: GETDATE.getDate(),
-        deleted_at: "",
-        update_at: "",
+        deleted_at: null,
+        update_at: null,
       });
 
       await CATEGORY.save();

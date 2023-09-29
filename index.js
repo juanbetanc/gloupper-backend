@@ -15,7 +15,6 @@ mongoose.Promise = global.Promise;
 // Configuramos el CORS para controlar el acceso a la API
 
 
-//mongodb+srv://startupcluster.q2htvc0.mongodb.net/StartupCluster?authSource=startup-api-rest@admin
 mongoose.connect('mongodb+srv://duvan:t8qFmelrP8PapNwF@travel.phtj87x.mongodb.net/business&authSource=admin', { useNewUrlParser: true, useUnifiedTopology: true })
     .then(() => {
         // Cuando se realiza la conexión, lanzamos este mensaje por consola

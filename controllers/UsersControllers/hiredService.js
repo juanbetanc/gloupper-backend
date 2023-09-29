@@ -1,15 +1,16 @@
 "use strict";
 
-const HIRESERVICE = require("../../models/hiredService");
+const HireService = require("../../models/hiredService");
 const MICROBUSINESS = require("../../models/microBusiness");
 const GETDATE = require("../../helpers/getDate");
+const io = require("../../index.js").io;
 
 // Hire service
 
 exports.hireService = async function (req, res) {
   const { business_id, service_id, client_id, location, date, hour, message } =
     req.body;
-  const FINDUSERSERVICE = await HIRESERVICE.findOne({
+  const FINDUSERSERVICE = await HireService.findOne({
     business_id: business_id,
     service_id: service_id,
     client_id: client_id,
@@ -23,7 +24,7 @@ exports.hireService = async function (req, res) {
         "The user has already contracted this service for the same date and time",
     });
   } else {
-    const HireService = new HIRESERVICE({
+    const hireService = new HireService({
       business_id: business_id,
       service_id: service_id,
       client_id: client_id,
@@ -35,7 +36,7 @@ exports.hireService = async function (req, res) {
       hired_at: GETDATE.getDate(),
     });
 
-    await HIRESERVICE.save((err) => {
+    await HireService.save((err) => {
       if (err) {
         res.status(500).send({ dato: err });
       } else {
@@ -50,7 +51,7 @@ exports.hireService = async function (req, res) {
 exports.ClientGetHiredServices = async function(req, res){
   const { client_id } = req.body;
 
-  await HIRESERVICE.find({ client_id: client_id}, function (err, data) {
+  await HireService.find({ client_id: client_id}, function (err, data) {
     if (err) {
       console.log(err);
     } else {

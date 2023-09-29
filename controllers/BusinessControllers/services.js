@@ -2,7 +2,7 @@
 
 require("dotenv").config();
 const MicroBusiness = require("../../models/microBusiness");
-const SERVICES = require("../../models/services");
+const Services = require("../../models/services");
 const GETDATE = require("../../helpers/getDate");
 const cloudinary = require("cloudinary").v2;
 
@@ -18,7 +18,7 @@ exports.createService = async function (req, res) {
     const { business_id, name, description, price, added } = req.body;
 
     // Verificar si el servicio ya existe para la MicroBusiness
-    const existingService = await SERVICES.findOne({
+    const existingService = await Services.findOne({
       _business: business_id,
       name: name,
     });
@@ -36,7 +36,7 @@ exports.createService = async function (req, res) {
     });
 
     // Crear una nueva instancia de Service
-    const newService = new SERVICES({
+    const newService = new Services({
       _business: business_id,
       name: name,
       description: description,
@@ -68,7 +68,7 @@ exports.createService = async function (req, res) {
 
 exports.getServices = async function (req, res) {
   const { business_id } = req.body;
-  await SERVICES.find({ business_id: business_id }, function (err, data) {
+  await Services.find({ business_id: business_id }, function (err, data) {
     if (err) {
       console.log("Error: " + err);
     } else {
@@ -81,7 +81,7 @@ exports.getServices = async function (req, res) {
 
 exports.getOneService = async function (req, res) {
   const { id } = req.params;
-  await SERVICES.find({ _id: id }, function (err, data) {
+  await Services.find({ _id: id }, function (err, data) {
     if (err) {
       console.log("Error: " + err);
     } else {
@@ -97,7 +97,7 @@ exports.updateService = async function (req, res) {
   const { business_id, name, description, price, added } = req.body;
 
   try {
-    const modelData = await SERVICES.find({ _id: id });
+    const modelData = await Services.find({ _id: id });
     if (modelData[0].image) {
       const arrayName = modelData[0].image.split("/");
       const imageName = arrayName[arrayName.length - 1];
@@ -142,7 +142,7 @@ exports.deleteService = async function (req, res) {
   const { id } = req.params;
   const { business_id } = req.body;
   try {
-    const modelData = await SERVICES.find({ _id: id });
+    const modelData = await Services.find({ _id: id });
     if (modelData[0].image) {
       const arrayName = modelData[0].image.split("/");
       const imageName = arrayName[arrayName.length - 1];
@@ -150,7 +150,7 @@ exports.deleteService = async function (req, res) {
       cloudinary.uploader.destroy("services/" + public_id);
     }
 
-    await SERVICES.deleteOne({
+    await Services.deleteOne({
       _id: id,
       business_id: business_id,
     });

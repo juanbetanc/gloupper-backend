@@ -2,7 +2,7 @@
 // Cargamos los modelos para usarlos posteriormente
 require("dotenv").config();
 var MicroBusiness = require("../../models/microBusiness");
-const SERVICES = require("../../models/services");
+// const SERVICES = require("../../models/services");
 const User = require("../../models/user");
 const GETDATE = require("../../helpers/getDate");
 const cloudinary = require("cloudinary").v2;
@@ -32,7 +32,7 @@ exports.registerMicroBusiness = async function (req, res) {
           folder: "stores",
         });
 
-        const MICROBUSINESS = new MicroBusiness({
+        const microBusiness = new MicroBusiness({
           user_id: id,
           name: name,
           description: description,
@@ -44,11 +44,11 @@ exports.registerMicroBusiness = async function (req, res) {
           comments: "",
           category: category,
           created_at: GETDATE.getDate(),
-          deleted_at: "",
-          update_at: "",
+          deleted_at: null,
+          update_at: null,
         });
 
-        await MICROBUSINESS.save();
+        await microBusiness.save();
         res.status(200).send({ dato: "Business registered successfully" });
       }
     }

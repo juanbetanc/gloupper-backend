@@ -80,8 +80,8 @@ exports.registerUser = async function (req, res) {
         image: image, // Asignamos la URL de la imagen o un valor en blanco
         reports: 0,
         created_at: GETDATE.getDate(),
-        updated_at: "",
-        deleted_at: "",
+        updated_at: null,
+        deleted_at: null,
       });
 
       await USER.save();
@@ -98,7 +98,7 @@ exports.getUserData = async function (req, res) {
   const { id } = req.params;
   await User.findById({ _id: id }, function (err, data) {
     if (err) {
-      console.log("Error: " + err);
+      res.json({"Error: " : err});
     } else {
       res.json(data);
     }

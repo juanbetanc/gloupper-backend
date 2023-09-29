@@ -17,6 +17,8 @@ var user_routes = require("./routes/user");
 var microBusiness_routes = require("./routes/microBusiness");
 var categories_routes = require("./routes/categories");
 var services_routes = require("./routes/services");
+var chat_routes = require("./routes/ChatRoute");
+var message_routes = require("./routes/MessageRoute");
 const fileUpload = require("express-fileupload");
 
 //cargar middlewares
@@ -39,6 +41,8 @@ app.use("/api", user_routes);
 app.use("/api", microBusiness_routes);
 app.use("/api", categories_routes);
 app.use("/api", services_routes);
+app.use("/api", chat_routes);
+app.use("/api", message_routes);
 
 // exportamos este módulo para poder usar la variable app fuera de este archivo
 module.exports = app;
