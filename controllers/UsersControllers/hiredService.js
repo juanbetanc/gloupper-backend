@@ -2,7 +2,8 @@
 
 const HireService = require("../../models/hiredService");
 const MICROBUSINESS = require("../../models/microBusiness");
-const GETDATE = require("../../middlewares/getDate");
+const GETDATE = require("../../helpers/getDate");
+const io = require("../../index.js").io;
 
 // Hire service
 
@@ -23,7 +24,7 @@ exports.hireService = async function (req, res) {
         "The user has already contracted this service for the same date and time",
     });
   } else {
-    const HIRESERVICE = new HireService({
+    const hireService = new HireService({
       business_id: business_id,
       service_id: service_id,
       client_id: client_id,
@@ -35,7 +36,7 @@ exports.hireService = async function (req, res) {
       hired_at: GETDATE.getDate(),
     });
 
-    await HIRESERVICE.save((err) => {
+    await HireService.save((err) => {
       if (err) {
         res.status(500).send({ dato: err });
       } else {
@@ -49,11 +50,12 @@ exports.hireService = async function (req, res) {
 
 exports.ClientGetHiredServices = async function(req, res){
   const { client_id } = req.body;
+
   await HireService.find({ client_id: client_id}, function (err, data) {
     if (err) {
       console.log(err);
     } else {
-      res.json({ data });
+      res.json(data);
     }
   });
 }

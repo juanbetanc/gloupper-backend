@@ -4,13 +4,14 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const ServicesSchema = Schema({
-    business_id: String,
-    name: String,
-    description: String,
+    _business: {type: String, ref: 'MicroBusiness'},
+    name: { type: String, require: true },
+    description: { type: String, require: true },
     added: Array,
-    price: Number,
-    created_at: String,
-    update_at: String,
+    price: { type: Number, require: true },
+    image: { type: String, require: true },
+    created_at: Date,
+    update_at: Date,
 });
 
 module.exports = mongoose.model('Services', ServicesSchema);

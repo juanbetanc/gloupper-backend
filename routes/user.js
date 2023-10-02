@@ -6,6 +6,7 @@ var express = require("express");
 // Cargamos el controlador
 var UserController = require("../controllers/UsersControllers/user");
 var ServicesController = require("../controllers/UsersControllers/hiredService");
+const validateToken = require("../helpers/validateToken");
 
 var corsOptions = {
   origin: "*",
@@ -39,7 +40,7 @@ var md_auth = require("../middlewares/authenticated");
  *
  *
  */
-api.post("/validate-token", md_auth.ensureAuth)
+api.post("/validate-token", validateToken.validateToken);
 
 /**
  * @swagger
@@ -127,19 +128,18 @@ api.post("/login", UserController.login);
  *                  "description": "Fecha de nacimiento del usuario",
  *                  "type": "String",
  *                  "required": true
- *              },
- *              {
- *                  "in": "formData",
- *                  "name": "image",
- *                  "description": "Imagen de perfil del usuario",
- *                  "type": "String",
- *                  "required": true
- *              },
+ *              },             
  *          ]
  *
  *
  */
 api.post("/register", cors(corsOptions), UserController.registerUser);
+
+api.get("/user/:id", md_auth.ensureAuth, UserController.getUserData);
+
+api.put("/user/:id", md_auth.ensureAuth, UserController.updateUser);
+
+api.patch("/user/:id", md_auth.ensureAuth, UserController.deleteUser);
 
 // Hire Services
 /**
@@ -222,7 +222,22 @@ api.post("/hire", md_auth.ensureAuth, ServicesController.hireService);
  *              },
  *          ]
  */
-api.get("/hired", md_auth.ensureAuth, ServicesController.ClientGetHiredServices);
+api.get(
+  "/hired",
+  md_auth.ensureAuth,
+  ServicesController.ClientGetHiredServices
+);
+
+// Business report
+
+api.post(
+  "/report-business/:id",
+  md_auth.ensureAuth,
+  UserController.businessReport
+);
+
+// Find business
+api.get("/search/:param", md_auth.ensureAuth, UserController.findBusiness);
 
 // Exportamos la configuración
 module.exports = api;

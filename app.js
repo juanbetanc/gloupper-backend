@@ -17,21 +17,32 @@ var user_routes = require("./routes/user");
 var microBusiness_routes = require("./routes/microBusiness");
 var categories_routes = require("./routes/categories");
 var services_routes = require("./routes/services");
+var chat_routes = require("./routes/ChatRoute");
+var message_routes = require("./routes/MessageRoute");
+const fileUpload = require("express-fileupload");
 
 //cargar middlewares
 //un metodo que se ejecuta antes que llegue a un controlador
 //Configuramos bodyParser para que convierta el body de nuestras peticiones a JSON
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
 app.use(cors());
 app.use(cors({
     origin: '*'
 }))
+
+app.use(fileUpload({
+    useTempFiles : true,
+    tempFileDir : '/tmp'
+}));
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 // Cargamos las rutas
+
 app.use("/api", user_routes);
 app.use("/api", microBusiness_routes);
 app.use("/api", categories_routes);
 app.use("/api", services_routes);
+app.use("/api", chat_routes);
+app.use("/api", message_routes);
 
 // exportamos este módulo para poder usar la variable app fuera de este archivo
 module.exports = app;

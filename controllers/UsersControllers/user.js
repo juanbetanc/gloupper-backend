@@ -1,26 +1,35 @@
 "use strict";
 // Cargamos los modelos para usarlos posteriormente
-var User = require("../../models/user");
-var jwt = require("jwt-simple");
+
+require('dotenv').config();
+const User = require("../../models/user");
+const MicroBusiness = require("../../models/microBusiness");
+const jwt = require("jwt-simple");
 const bcrypt = require("bcrypt-nodejs");
+const cloudinary = require("cloudinary").v2;
+const GETDATE = require("../../helpers/getDate");
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 // Conseguir datos de un usuario
 exports.login = async function (req, res) {
   var { email, password } = req.body;
   const USER = await User.findOne({ email: email });
-
+  
   if (verifyPassword(password, USER.password)) {
-    // if (err) {
-    //   console.log(err);
-    //   return res.status(500).send({ err: err });
-    // } else {
     //Generate JWT
     const payload = { user_id: USER._id, email: USER.email };
     const token = jwt.encode(payload, "?xugw#BaH8=V_YJ");
     // secret key : ? xbox usa golf walmart # BESTBUY apple HULU 8 = VISA _ YELP JACK
-    const response = { token: token, user: { name: USER.name, rol: USER.rol } };
+    const response = {
+      token: token,
+      user: { name: USER.name, rol: USER.rol, userId: USER._id },
+    };
     return res.status(200).send(response);
-    // }
   }
 
   return res.json({ Message: "Incorrect credentials" });
@@ -39,36 +48,47 @@ const verifyPassword = function (password, hash) {
 
 // Función asíncrona que espera por respuestas
 exports.registerUser = async function (req, res) {
-  // Devuelve el objeto del usuario en caso de que se encuentre una coincidencia
-  // entre el email otorgaro por el usuario y un email registrado en la bd
+  try {
+    const findEmail = await User.findOne({ email: req.body.email });
 
-  const findEmail = await User.findOne({ email: req.body.email });
+    if (findEmail) {
+      res.json({ Message: "The email already exists" });
+    } else {
+      let image = ""; // Inicializamos la variable de imagen en blanco
 
-  const { name, surname, email, rol, tel, password, gender, birthdate, image } =
-    req.body;
+      if (req.files && req.files.image) {
+        // Verificamos si se proporcionó una imagen en la solicitud
+        const { tempFilePath } = req.files.image;
+        const { secure_url } = await cloudinary.uploader.upload(tempFilePath, {
+          folder: "profiles",
+        });
 
-  if (findEmail) {
-    res.json({ Message: "The mail already exists" });
-  } else {
-    const USER = new User({
-      name: name,
-      surname: surname,
-      email: email,
-      rol,
-      tel: tel,
-      password: generateHashPassword(password),
-      gender: gender,
-      birthdate: birthdate,
-      image: image,
-    });
-
-    await USER.save((err) => {
-      if (err) {
-        res.status(500).send({ dato: err });
-      } else {
-        res.status(200).send({ dato: "Registered user" });
+        image = secure_url; // Asignamos la URL de la imagen a la variable
       }
-    });
+
+      const { name, email, rol, tel, password, gender, birthdate } = req.body;
+      const hashedPassword = generateHashPassword(password);
+
+      const USER = new User({
+        name: name,
+        email: email,
+        rol: rol,
+        tel: tel,
+        password: hashedPassword,
+        gender: gender,
+        birthdate: birthdate,
+        image: image, // Asignamos la URL de la imagen o un valor en blanco
+        reports: 0,
+        created_at: GETDATE.getDate(),
+        updated_at: null,
+        deleted_at: null,
+      });
+
+      await USER.save();
+      res.status(200).send({ dato: "Registered user" });
+    }
+  } catch (error) {
+    res.status(500).send({ dato: error.message || "An error occurred" });
   }
 };
 
@@ -76,23 +96,35 @@ exports.registerUser = async function (req, res) {
 
 exports.getUserData = async function (req, res) {
   const { id } = req.params;
-  await User.find({ _id: id }, function (err, data) {
+  await User.findById({ _id: id }, function (err, data) {
     if (err) {
-      console.log("Error: " + err);
+      res.json({"Error: " : err});
     } else {
-      res.json({ data });
+      res.json(data);
     }
   });
 };
-
 
 // Update user data
 
 exports.updateUser = async function (req, res) {
   const { id } = req.params;
-  const { name, surname, email, tel, gender, birthdate, image } = req.body;
+  const { name, surname, email, tel, gender, birthdate } = req.body;
 
   try {
+    const modelData = await User.find({ _id: id });
+    if (modelData[0].image) {
+      const arrayName = modelData[0].image.split("/");
+      const imageName = arrayName[arrayName.length - 1];
+      const [public_id] = imageName.split(".");
+      cloudinary.uploader.destroy("profiles/" + public_id);
+    }
+
+    const { tempFilePath } = req.files.image;
+    const { secure_url } = await cloudinary.uploader.upload(tempFilePath, {
+      folder: "profiles",
+    });
+
     await User.updateOne(
       {
         _id: id,
@@ -105,20 +137,22 @@ exports.updateUser = async function (req, res) {
           tel: tel,
           gender: gender,
           birthdate: birthdate,
-          image: image,
+          image: secure_url,
+          updated_at: GETDATE.getDate(),
         },
       }
     );
+
     res.json({
       Message: "Edited successfully",
     });
-  } catch (err) {
-    res.json({
-      Message: err,
+  } catch (error) {
+    res.status(500).json({
+      Message: "An error occurred",
+      Error: error.message || "Unknow error",
     });
   }
 };
-
 
 // Delete User
 
@@ -132,16 +166,64 @@ exports.deleteUser = async function (req, res) {
       },
       {
         $set: {
-          status: 'Inactive'
+          status: "Inactive",
+          deleted_at: GETDATE.getDate(),
         },
       }
     );
     res.json({
       Message: "User Deleted",
     });
-  } catch (err) {
-    res.json({
-      Message: err,
+  } catch (error) {
+    res.status(500).json({
+      Message: "An error occurred",
+      Error: error.message || "Unknow error",
     });
   }
-}
+};
+
+// Reportar empresa
+exports.businessReport = async function (req, res) {
+  try {
+    const { business_id } = req.params;
+    const businessData = await User.find({ _id: business_id });
+    const businessReports = businessData[0].reports;
+
+    await User.updateOne(
+      {
+        _id: user_id,
+      },
+      {
+        $set: {
+          reports: businessReports + 1,
+        },
+      }
+    );
+    res.json({
+      Message: "Business reported",
+    });
+  } catch (error) {
+    res.status(500).json({
+      Message: "An error occurred",
+      Error: error.message || "Unknow error",
+    });
+  }
+};
+
+// Buscar Empresas
+
+exports.findBusiness = async function (req, res) {
+  try {
+    const { param } = req.params;
+    const data = await MicroBusiness.find({
+      name: { $regex: param, $options: "i" },
+    });
+    res.json(data);
+    
+  } catch (error) {
+    res.status(500).json({
+      Message: "An error occurred",
+      Error: error.message || "Unknow error",
+    });
+  }
+};
