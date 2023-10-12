@@ -5,7 +5,8 @@ var mongoose = require("mongoose");
 var Schema = mongoose.Schema;
 // Creamos el objeto del esquema y sus atributos
 var UserSchema = Schema({
-  name: { type: String, require: true },
+  firstname: { type: String, require: true },
+  lastname: { type: String },
   email: { type: String, require: true },
   rol: { type: String, require: true },
   tel: { type: String, require: true },
@@ -17,7 +18,7 @@ var UserSchema = Schema({
     require: true,
   },
   birthdate: Date,
-  image: { type: String, require: true },
+  image: { type: String },
   reports: Number,
   created_at: String,
   deleted_at: String,

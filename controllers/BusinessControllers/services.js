@@ -15,7 +15,7 @@ cloudinary.config({
 // Create a new service
 exports.createService = async function (req, res) {
   try {
-    const { business_id, name, description, price, added } = req.body;
+    const { business_id, name, description, price, image, added } = req.body;
 
     // Verificar si el servicio ya existe para la MicroBusiness
     const existingService = await Services.findOne({
@@ -30,10 +30,10 @@ exports.createService = async function (req, res) {
     }
 
     // Subir la imagen a Cloudinary
-    const { tempFilePath } = req.files.image;
-    const { secure_url } = await cloudinary.uploader.upload(tempFilePath, {
-      folder: "services",
-    });
+    // const { tempFilePath } = req.files.image;
+    // const { secure_url } = await cloudinary.uploader.upload(tempFilePath, {
+    //   folder: "services",
+    // });
 
     // Crear una nueva instancia de Service
     const newService = new Services({
@@ -42,7 +42,7 @@ exports.createService = async function (req, res) {
       description: description,
       price: price,
       added: added || [],
-      image: secure_url,
+      image: image,
       created_at: new Date().toISOString(),
       update_at: null,
     });

@@ -1,7 +1,7 @@
 'user strict'
 var jwt = require('jwt-simple');
 var moment = require('moment');
-var secret = '?xugw#BaH8=V_YJ';
+var secret = 'pruebprueba';
 
 exports.ensureAuth = function (req, res, next) {
     if (!req.headers.authorization) {

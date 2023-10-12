@@ -56,6 +56,8 @@ api.get("/business", md_auth.ensureAuth, MicroBusinessController.getMicroBusines
 */
 api.get("/business/:id", md_auth.ensureAuth, MicroBusinessController.getOneMicrobusiness);
 
+api.get("/mybusiness/:user_id", md_auth.ensureAuth, MicroBusinessController.getMyBusiness);
+
 /**
  * @swagger
  * /business:

@@ -24,6 +24,7 @@ exports.createChat = async (req, res) => {
   };
   
   exports.findChat = async (req, res) => {
+    console.log('encontart chat')
     try {
       const chat = await ChatModel.findOne({
         members: { $all: [req.params.firstId, req.params.secondId] },

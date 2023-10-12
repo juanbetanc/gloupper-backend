@@ -22,12 +22,12 @@ exports.login = async function (req, res) {
   
   if (verifyPassword(password, USER.password)) {
     //Generate JWT
-    const payload = { user_id: USER._id, email: USER.email };
-    const token = jwt.encode(payload, "?xugw#BaH8=V_YJ");
+    const payload = USER ;
+    const token = jwt.encode(payload, "pruebprueba");
     // secret key : ? xbox usa golf walmart # BESTBUY apple HULU 8 = VISA _ YELP JACK
     const response = {
       token: token,
-      user: { name: USER.name, rol: USER.rol, userId: USER._id },
+      user: USER,
     };
     return res.status(200).send(response);
   }
@@ -54,30 +54,31 @@ exports.registerUser = async function (req, res) {
     if (findEmail) {
       res.json({ Message: "The email already exists" });
     } else {
+
       let image = ""; // Inicializamos la variable de imagen en blanco
 
-      if (req.files && req.files.image) {
-        // Verificamos si se proporcionó una imagen en la solicitud
-        const { tempFilePath } = req.files.image;
-        const { secure_url } = await cloudinary.uploader.upload(tempFilePath, {
-          folder: "profiles",
-        });
+      // if (req.files && req.files.image) {
+      //   // Verificamos si se proporcionó una imagen en la solicitud
+      //   const { tempFilePath } = req.files.image;
+      //   const { secure_url } = await cloudinary.uploader.upload(tempFilePath, {
+      //     folder: "profiles",
+      //   });
 
-        image = secure_url; // Asignamos la URL de la imagen a la variable
-      }
+      //   image = secure_url; // Asignamos la URL de la imagen a la variable
+      // }
 
-      const { name, email, rol, tel, password, gender, birthdate } = req.body;
+      const { firstname, email, rol = '', tel = '', password, gender = 'Pending', birthdate = '' } = req.body;
       const hashedPassword = generateHashPassword(password);
 
       const USER = new User({
-        name: name,
+        firstname: firstname,
         email: email,
         rol: rol,
         tel: tel,
         password: hashedPassword,
         gender: gender,
         birthdate: birthdate,
-        image: image, // Asignamos la URL de la imagen o un valor en blanco
+        image: image,
         reports: 0,
         created_at: GETDATE.getDate(),
         updated_at: null,
@@ -96,6 +97,7 @@ exports.registerUser = async function (req, res) {
 
 exports.getUserData = async function (req, res) {
   const { id } = req.params;
+
   await User.findById({ _id: id }, function (err, data) {
     if (err) {
       res.json({"Error: " : err});
@@ -107,49 +109,41 @@ exports.getUserData = async function (req, res) {
 
 // Update user data
 
-exports.updateUser = async function (req, res) {
-  const { id } = req.params;
-  const { name, surname, email, tel, gender, birthdate } = req.body;
-
+exports.updateUser = async (req, res) => {
   try {
-    const modelData = await User.find({ _id: id });
-    if (modelData[0].image) {
-      const arrayName = modelData[0].image.split("/");
-      const imageName = arrayName[arrayName.length - 1];
-      const [public_id] = imageName.split(".");
-      cloudinary.uploader.destroy("profiles/" + public_id);
-    }
+    const { id } = req.params;
+    const { firstname, lastname, email, tel, gender, birthdate, rol, image } = req.body;
 
-    const { tempFilePath } = req.files.image;
-    const { secure_url } = await cloudinary.uploader.upload(tempFilePath, {
-      folder: "profiles",
-    });
+    const updateFields = {};
+    if (firstname) updateFields.firstname = firstname;
+    if (lastname) updateFields.lastname = lastname;
+    if (email) updateFields.email = email;
+    if (tel) updateFields.tel = tel;
+    if (gender) updateFields.gender = gender;
+    if (birthdate) updateFields.birthdate = birthdate;
+    if (rol) updateFields.rol = rol;
+    if (image) updateFields.image = image;
 
-    await User.updateOne(
-      {
-        _id: id,
-      },
-      {
-        $set: {
-          name: name,
-          surname: surname,
-          email: email,
-          tel: tel,
-          gender: gender,
-          birthdate: birthdate,
-          image: secure_url,
-          updated_at: GETDATE.getDate(),
-        },
-      }
-    );
+    // if (req.files && req.files.image) {
+    //   const { tempFilePath } = req.files.image;
+    //   const { secure_url } = await cloudinary.uploader.upload(tempFilePath, {
+    //     folder: "profiles",
+    //   });
+    //   updateFields.image = secure_url;
+    // }
+
+    updateFields.updated_at = new Date();
+
+    await User.findByIdAndUpdate(id, updateFields, { new: true });
 
     res.json({
       Message: "Edited successfully",
     });
   } catch (error) {
+    console.error(error);
     res.status(500).json({
       Message: "An error occurred",
-      Error: error.message || "Unknow error",
+      Error: error.message || "Unknown error",
     });
   }
 };
@@ -215,11 +209,11 @@ exports.businessReport = async function (req, res) {
 exports.findBusiness = async function (req, res) {
   try {
     const { param } = req.params;
+
     const data = await MicroBusiness.find({
       name: { $regex: param, $options: "i" },
     });
     res.json(data);
-    
   } catch (error) {
     res.status(500).json({
       Message: "An error occurred",

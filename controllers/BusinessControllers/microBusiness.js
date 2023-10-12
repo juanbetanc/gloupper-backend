@@ -17,7 +17,7 @@ cloudinary.config({
 
 exports.registerMicroBusiness = async function (req, res) {
   try {
-    const { id, name, description, nit, location, category } = req.body;
+    const { id, name, description, nit, location, category, image } = req.body;
 
     const FINDNIT = await MicroBusiness.findOne({ nit: nit });
     const FINDUSER = await MicroBusiness.findOne({ user_id: id });
@@ -27,10 +27,11 @@ exports.registerMicroBusiness = async function (req, res) {
       if (FINDNIT) {
         res.json({ Message: "The NIT is already registered" });
       } else {
-        const { tempFilePath } = req.files.image;
-        const { secure_url } = await cloudinary.uploader.upload(tempFilePath, {
-          folder: "stores",
-        });
+        
+        // const { tempFilePath } = req.files.image;
+        // const { secure_url } = await cloudinary.uploader.upload(tempFilePath, {
+        //   folder: "stores",
+        // });
 
         const microBusiness = new MicroBusiness({
           user_id: id,
@@ -38,7 +39,7 @@ exports.registerMicroBusiness = async function (req, res) {
           description: description,
           nit: nit,
           location: location,
-          image: secure_url,
+          image: image,
           status: "Active",
           assessment: "",
           comments: "",
@@ -63,9 +64,28 @@ exports.getMicroBusiness = async function (req, res) {
     if (err) {
       res.json({ "Error: ": err });
     } else {
-      res.json({ data });
+      res.json( data );
     }
   });
+};
+
+exports.getMyBusiness = async function (req, res) {
+  const { user_id } = req.params;
+
+  try {
+    const microBusiness = await MicroBusiness.findOne({ user_id: user_id }).populate(
+      "services"
+    );
+
+    if (!microBusiness) {
+      return res.status(404).json({ error: "MicroBusiness no encontrado" });
+    }
+
+    res.json(microBusiness);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error al buscar MicroBusiness" });
+  }
 };
 
 // Get one Microbusiness
@@ -92,35 +112,40 @@ exports.getOneMicrobusiness = async function (req, res) {
 
 exports.updateMicrobusiness = async function (req, res) {
   const { id } = req.params;
-  const { name, description, nit, location, category } = req.body;
+  const { name, description, nit, location, category, image, logo } = req.body;
+
+  const updateFields = {};
+  if (name) updateFields.name = name;
+  if (description) updateFields.description = description;
+  if (nit) updateFields.nit = nit;
+  if (location) updateFields.location = location;
+  if (category) updateFields.category = category;
+  if (image) updateFields.image = image;
+  if (logo) updateFields.logo = logo;
+  
+  updateFields.updated_at = new Date();
 
   try {
-    const modelData = await MicroBusiness.find({ _id: id });
-    if (modelData[0].image) {
-      const arrayName = modelData[0].image.split("/");
-      const imageName = arrayName[arrayName.length - 1];
-      const [public_id] = imageName.split(".");
-      cloudinary.uploader.destroy("stores/" + public_id);
-    }
+    // const modelData = await MicroBusiness.find({ _id: id });
 
-    const { tempFilePath } = req.files.image;
-    const { secure_url } = await cloudinary.uploader.upload(tempFilePath, {
-      folder: "stores",
-    });
+    // if (modelData[0].image) {
+    //   const arrayName = modelData[0].image.split("/");
+    //   const imageName = arrayName[arrayName.length - 1];
+    //   const [public_id] = imageName.split(".");
+    //   cloudinary.uploader.destroy("stores/" + public_id);
+    // }
+
+    // const { tempFilePath } = req.files.image;
+    // const { secure_url } = await cloudinary.uploader.upload(tempFilePath, {
+    //   folder: "stores",
+    // });
+
     await MicroBusiness.updateOne(
       {
         _id: id,
       },
       {
-        $set: {
-          name: name,
-          description: description,
-          nit: nit,
-          location: location,
-          image: secure_url,
-          category: category,
-          update_at: GETDATE.getDate(),
-        },
+        $set: updateFields
       }
     );
     res.json({
